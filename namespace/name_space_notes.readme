@@ -1,0 +1,100 @@
+Linux Namespace 主要是为了支持container而实现的。container是一种轻量级的虚拟化技术。它把一组进程伪装成独占系统。这就需要linux支持进程独享全局资源的一个instance。这也就有了Namespace，用来实现全局资源的隔离。
+
+Linux实现了6种Namespace。
+
+# UTS namespace
+
+CLONE_NEWUTS
+
+用于隔离nodename和domainname。这两个标识符可以通过uname() syscall来获得，可以通过sethostname()和setdomainname() syscall来修改。
+
+[root@crdc-asr1k-trex namespace]# uname -n
+crdc-asr1k-trex.cisco.com
+[root@crdc-asr1k-trex namespace]# domainname
+europe1.eng.
+[root@crdc-asr1k-trex namespace]# gcc ns_uts.c -o ns_uts
+[root@crdc-asr1k-trex namespace]# ./ns_uts
+Parent - start a container!
+Container - inside the container!
+[root@my_hostnam namespace]# uname -n
+my_hostnam
+[root@my_hostnam namespace]# domainname
+my_domain
+[root@my_hostnam namespace]# exit
+exit
+Parent - container stopped!
+[root@crdc-asr1k-trex namespace]# uname -n
+crdc-asr1k-trex.cisco.com
+[root@crdc-asr1k-trex namespace]# domainname
+europe1.eng.
+
+
+# IPC namespace
+
+CLONE_NEWIPC
+
+IPC有共享内存，信号量，消息队列等。每个IPC namespace有自己的System V IPC identifiers 和自己的POSIX message queue 文件系统。所以只有同一个IPC namespace内的进程才能通信。
+
+[root@crdc-asr1k-trex namespace]# ipcmk -Q    < --- 创建一个IPC queue
+Message queue id: 0
+[root@crdc-asr1k-trex namespace]# ipcs -q
+
+------ Message Queues --------
+key        msqid      owner      perms      used-bytes   messages
+0x3b46c081 0          root       644        0            0
+
+[root@crdc-asr1k-trex namespace]# gcc ns_ipc.c -o ns_ipc
+[root@crdc-asr1k-trex namespace]# ./ns_ipc
+Parent - start a container!
+Container - inside the container!
+[root@crdc-asr1k-trex namespace]# ipcs -q
+
+------ Message Queues --------
+key        msqid      owner      perms      used-bytes   messages
+
+
+# PID namespace
+
+CLONE_NEWPID
+
+对于PID namespace可以是嵌套分层的。
+每个进程有两个PID，一个是在namespace里的，一个是在namespace外的。进程可以看到自己namespace里的PID还有自己以下的namespace里的PID。
+
+
+[root@crdc-asr1k-trex namespace]# ./ns_pid
+Parent - start a container!
+Container - inside the container!
+pid: 1  < --- pid inside the namespace
+[root@crdc-asr1k-trex namespace]# ps -aux | grep ns_pid  < ---- ps 从proc里拿process list。所以这里看到的是outside namespace的pid
+root      7191  0.0  0.0   5144   324 pts/1    S    18:44   0:00 ./ns_pid
+root      7243  0.0  0.0 109176   892 pts/1    S+   18:44   0:00 grep --color=auto ns_pid
+[root@crdc-asr1k-trex namespace]# exit
+exit
+pid: 7191  < --- pid outside the namespace
+Parent - container stopped!
+
+
+# Mount Namespace
+
+CLONE_NEWNS
+
+用来隔离不同进程间的filesystem mount points，所以不同mount namespace里的process可以看到不同的文件系统层次。mount()/umount()只对同一个namespace里的process起作用。
+
+[root@crdc-asr1k-trex namespace]# gcc ns_mount.c -o ns_mount
+[root@crdc-asr1k-trex namespace]# ./ns_mount
+Parent - start a container!
+Container - inside the container!
+pid: 1
+[root@crdc-asr1k-trex namespace]# ps -aux
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  2.6  0.0 115800  3656 pts/1    S    18:56   0:00 /bin/bash
+root        52  0.0  0.0 115768  1300 pts/1    R+   18:56   0:00 ps -aux
+
+
+
+
+
+# Refernce 
+
+1. http://coolshell.cn/articles/17010.html
+2. http://lwn.net/Articles/531114/
