@@ -5,8 +5,8 @@ mkdir -p $J
 mkdir -p $J/{bin,lib64,lib}
 cd $J
 cp -v /bin/{bash,ls} $J/bin
-ldd /bin/bash
-cp -v /lib64/linux-vdso.so.1 /lib64/libtinfo.so.5 /lib64/libdl.so.2 /lib64/libc.so.6 /lib64/ld-linux-x86-64.so.2 $J/lib64
+ldd /bin/bash    # show the package dependency
+cp -v /lib64/linux-vdso.so.1 /lib64/libtinfo.so.5 /lib64/libdl.so.2 /lib64/libc.so.6 /lib64/ld-linux-x86-64.so.2 $J/lib64   # -v means verbose
 ldd /bin/ls
 list="$(ldd /bin/ls | egrep -o '/lib.*\.[0-9]')"
 for i in $list; do cp  -v "$i" "${J}${i}"; done
