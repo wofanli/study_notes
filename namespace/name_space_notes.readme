@@ -91,7 +91,12 @@ root         1  2.6  0.0 115800  3656 pts/1    S    18:56   0:00 /bin/bash
 root        52  0.0  0.0 115768  1300 pts/1    R+   18:56   0:00 ps -aux
 
 
+# User Namespace
 
+CLONE_NEWUSER
+
+在user namespace内部和外部，进程拥有不同的user/group ID。
+比如可以在user namespace内部，把user id设为0。也就是在user namespace内部，进程拥有root的权限，但是在进程外，这个进程却没有root的权限。
 
 
 # Refernce 
