@@ -96,7 +96,22 @@ docker login --username=maryatdocker --email=mary@docker.com
 
  docker push maryatdocker/docker-whale
 
- 
+# Dev env for docker
+
+开发docker的环境也是一个container，就在docker resp根目录下有一个Dockerfile。它定义了docker开发环境。
+
+## build images for docker dev env
+ docker build -t dry-run-test .
+
+## run the docekr dev env container
+ docker run --privileged --rm -ti -v `pwd`:/go/src/github.com/docker/docker dry-run /bin/bash
+
+--privileged表示允许这个container访问kernel features/device access
+--rm表示退出container时自动把container也删掉（？？删掉具体指的是什么？从docker-machine里删掉？）
+-t表示在容器里指示一个terminal
+-i:允许对容器内的STDIN进行交互
+
+https://docs.docker.com/opensource/project/set-up-dev-env/
 
 # reference
 
